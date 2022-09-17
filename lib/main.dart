@@ -27,18 +27,25 @@ class MyApp extends StatelessWidget {
 }
 
 testInt() async {
-  final stream1 = Stream.periodic(
-      const Duration(seconds: 1), (count) => "count1 is $count");
+  final stream1 =
+      Stream.periodic(const Duration(seconds: 1), (count) => "count1 is $count")
+          .take(4);
 
   final stream2 = Stream.periodic(
-      const Duration(seconds: 3), (count) => "count2 is $count");
+      const Duration(seconds: 1), (count) => "count2 is $count");
+  final result = stream1.concatWith([stream2]);
+  await for (final value in result) {
+    value.log();
+  }
 
+/*
   final streamCombine = Rx.combineLatest2(
       stream1, stream2, (one, two) => "one = $one , two = $two  result  ");
 
   await for (final value in streamCombine) {
     value.log();
   }
+  */
 }
 
 class HomePage extends StatelessWidget {
