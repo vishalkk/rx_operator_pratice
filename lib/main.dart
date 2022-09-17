@@ -32,9 +32,11 @@ testInt() async {
           .take(4);
 
   final stream2 = Stream.periodic(
-      const Duration(seconds: 1), (count) => "count2 is $count");
+      const Duration(seconds: 5), (count) => "count2 is $count");
   // final result = stream1.concatWith([stream2]);
-  final result = stream1.mergeWith([stream2]);
+  // final result = stream1.mergeWith([stream2]);
+  final result =
+      Rx.zip2(stream1, stream2, (a, b) => "Zip result A = $a , B = $b  ");
   await for (final value in result) {
     value.log();
   }
