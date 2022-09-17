@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
-import 'dart:developer' as devtools show log;
-
-extension Log on Object {
-  void log() => devtools.log(toString());
-}
 
 void main() {
   runApp(const MyApp());
@@ -21,45 +16,62 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomePage(),
+      home: const MyHomePage(),
     );
   }
 }
 
-testInt() async {
-  final stream1 =
-      Stream.periodic(const Duration(seconds: 1), (count) => "count1 is $count")
-          .take(4);
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key}) : super(key: key);
 
-  final stream2 = Stream.periodic(
-      const Duration(seconds: 5), (count) => "count2 is $count");
-  // final result = stream1.concatWith([stream2]);
-  // final result = stream1.mergeWith([stream2]);
-  final result =
-      Rx.zip2(stream1, stream2, (a, b) => "Zip result A = $a , B = $b  ");
-  await for (final value in result) {
-    value.log();
-  }
-
-/*
-  final streamCombine = Rx.combineLatest2(
-      stream1, stream2, (one, two) => "one = $one , two = $two  result  ");
-
-  await for (final value in streamCombine) {
-    value.log();
-  }
-  */
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+class _MyHomePageState extends State<MyHomePage> {
+  late final BehaviorSubject<DateTime> subject;
+  late final Stream<String> streamOfString;
+  @override
+  void initState() {
+    super.initState();
+    subject = BehaviorSubject<DateTime>();
+    streamOfString = subject.switchMap((dateTime) => Stream.periodic(
+          const Duration(seconds: 1),
+          (count) => "Stream count = $count, date time  =$dateTime",
+        ));
+  }
+
+  @override
+  void dispose() {
+    subject.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    testInt();
     return Scaffold(
-      appBar: AppBar(title: const Text("Homepage")),
-      body: Column(children: const []),
+      appBar: AppBar(
+        title: const Text("Rx SwitchMap"),
+      ),
+      body: Column(
+        children: [
+          StreamBuilder<String>(
+              stream: streamOfString,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final str = snapshot.requireData;
+                  return Text(str);
+                } else {
+                  return const Text("waiting for button to pressed");
+                }
+              }),
+          ElevatedButton(
+              onPressed: () {
+                subject.add(DateTime.now());
+              },
+              child: const Text("Start the stream"))
+        ],
+      ),
     );
   }
 }
