@@ -33,7 +33,8 @@ testInt() async {
 
   final stream2 = Stream.periodic(
       const Duration(seconds: 1), (count) => "count2 is $count");
-  final result = stream1.concatWith([stream2]);
+  // final result = stream1.concatWith([stream2]);
+  final result = stream1.mergeWith([stream2]);
   await for (final value in result) {
     value.log();
   }
